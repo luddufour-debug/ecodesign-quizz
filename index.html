@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ÉcoDesign & Accessibilité — Quiz Pédagogique</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F4F2ED;
+    --ink:       #1B1B18;
+    --muted:     #6B6860;
+    --border:    #C8C4BB;
+    --white:     #FEFCF8;
+
+    --eco:       #1A6649;
+    --eco-light: #D6EDE5;
+    --a11y:      #1A3E7A;
+    --a11y-light:#D4E0F5;
+    --process:   #5B3FA6;
+    --process-light:#E3DCFA;
+    --ethique:   #8B2E0A;
+    --ethique-light:#F5DACE;
+
+    --correct:   #1A6649;
+    --wrong:     #B81E1E;
+    --reveal-bg: #FFFDF5;
+
+    --radius:    4px;
+    --shadow:    0 2px 12px rgba(27,27,24,0.08);
+    --shadow-lg: 0 8px 40px rgba(27,27,24,0.14);
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  .site-header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .logo-divider {
+    width: 1px; height: 20px;
+    background: rgba(244,242,237,0.25);
+    flex-shrink: 0;
+  }
+  .header-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(244,242,237,0.5);
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 64px 40px 48px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .hero-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-kicker::before {
+    content: '';
+    display: block;
+    width: 24px; height: 1.5px;
+    background: var(--muted);
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+  .hero h1 em {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--eco);
+  }
+  .hero-sub {
+    margin-top: 20px;
+    font-family: 'Source Serif 4', serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 520px;
+  }
+  .hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+  }
+  .stat-big {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ─── SCORE BAR ─── */
+  .score-ribbon {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .score-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .score-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .dot-correct { background: #72E2B0; }
+  .dot-wrong   { background: #F28B7A; }
+  .dot-remaining { background: rgba(244,242,237,0.3); }
+  .progress-bar-wrap {
+    flex: 1; max-width: 200px;
+    height: 3px; background: rgba(244,242,237,0.15); border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: #72E2B0;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ─── CONTROLS ─── */
+  .controls-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .search-input {
+    flex: 1; max-width: 400px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 10px 16px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--ink);
+    outline: none;
+    border-radius: var(--radius);
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--ink); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .btn-ghost {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); background: var(--white); }
+
+  .btn-solid {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-solid:hover { background: #333; }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .chip {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 99px;
+    transition: all 0.18s;
+  }
+  .chip:hover { border-color: var(--ink); color: var(--ink); }
+  .chip.active-all     { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip.active-eco     { background: var(--eco); color: #fff; border-color: var(--eco); }
+  .chip.active-a11y    { background: var(--a11y); color: #fff; border-color: var(--a11y); }
+  .chip.active-process { background: var(--process); color: #fff; border-color: var(--process); }
+  .chip.active-ethique { background: var(--ethique); color: #fff; border-color: var(--ethique); }
+
+  .deck-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── GRID ─── */
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 8px 40px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  /* ─── QUIZ CARD ─── */
+  .qcard {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .qcard:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .qcard-top {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .cat-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .cat-eco     { background: var(--eco-light);     color: var(--eco); }
+  .cat-a11y    { background: var(--a11y-light);    color: var(--a11y); }
+  .cat-process { background: var(--process-light); color: var(--process); }
+  .cat-ethique { background: var(--ethique-light); color: var(--ethique); }
+
+  .card-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .qcard-body { padding: 20px 20px 0; }
+
+  .question-text {
+    font-family: 'Source Serif 4', serif;
+    font-size: 16px;
+    line-height: 1.55;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+
+  /* ─── ANSWER OPTIONS ─── */
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.18s;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: var(--white);
+  }
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    background: var(--border);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.18s;
+  }
+  .option-btn:hover:not(:disabled) .option-letter {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* States */
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: var(--eco-light);
+    color: var(--eco);
+    cursor: default;
+  }
+  .option-btn.correct .option-letter {
+    background: var(--eco);
+    color: #fff;
+  }
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: #FDECEA;
+    color: var(--wrong);
+    cursor: default;
+  }
+  .option-btn.wrong .option-letter {
+    background: var(--wrong);
+    color: #fff;
+  }
+  .option-btn.revealed {
+    border-color: var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    cursor: default;
+    opacity: 0.6;
+  }
+  .option-btn:disabled { cursor: default; }
+
+  /* ─── REVEAL PANEL ─── */
+  .reveal-panel {
+    display: none;
+    margin: 0 -0px 0;
+    border-top: 1.5px solid var(--border);
+    background: var(--reveal-bg);
+    padding: 16px 20px 18px;
+    animation: slideDown 0.25s ease;
+  }
+  .reveal-panel.show { display: block; }
+  @keyframes slideDown {
+    from { opacity:0; transform: translateY(-8px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .reveal-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reveal-header::before {
+    content: '';
+    width: 16px; height: 1.5px;
+    background: var(--muted);
+  }
+
+  .reveal-points {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .reveal-point {
+    display: flex;
+    gap: 10px;
+    font-family: 'Source Serif 4', serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .reveal-point-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    flex-shrink: 0;
+    padding-top: 3px;
+  }
+
+  .source-ref {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── CARD FOOTER ─── */
+  .qcard-foot {
+    padding: 10px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tags-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    color: var(--muted);
+  }
+  .diff-dots { display: flex; gap: 3px; align-items: center; }
+  .ddot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+  .ddot.on { background: var(--ink); }
+
+  /* ─── RESULT STATE ─── */
+  .status-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .empty-state p {
+    font-family: 'Source Serif 4', serif;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .empty-state small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 700px) {
+    .hero { grid-template-columns: 1fr; padding: 40px 20px 32px; }
+    .hero-stats { text-align: left; flex-direction: row; gap: 24px; }
+    .controls-wrap, .deck-meta { padding-left: 20px; padding-right: 20px; }
+    .grid { padding: 8px 20px 48px; }
+    .site-header { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAMUAxQDASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAcIBgkDBAUCAf/EAFgQAAEDAwIBBAsLCQYDBwMFAAABAgMEBQYHEQgSITFBExg3UVZhcXSxstIUIjVSc4GRlJWh0RcyNDZCVHKTwhUWYsHT4iMkgiUzU1d1kqJDw/AmZISFs//EABYBAQEBAAAAAAAAAAAAAAAAAAABAv/EABkRAQEBAQEBAAAAAAAAAAAAAAABETEhQf/aAAwDAQACEQMRAD8AuUADTIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//2Q==" alt="AGR — L'École de l'image Rennes" style="height:36px;width:auto;flex-shrink:0;background:white;padding:3px 6px;border-radius:3px;">
+    <div class="logo-divider"></div>
+    <span>64 cartes · Questions &amp; Réponses — AGR Rennes</span>
+  </div>
+  <div class="header-right" id="header-score">0 / 0 répondu</div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-kicker">Quiz pédagogique</div>
+    <h1>Éco-design<br><em>&amp; accessibilité</em></h1>
+    <p class="hero-sub">Testez et approfondissez vos connaissances sur les pratiques de conception responsable — éco-conception numérique, accessibilité, éthique du design.</p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-big" id="total-count">64</div>
+    <div class="stat-label">questions</div>
+  </div>
+</section>
+
+<!-- SCORE RIBBON -->
+<div class="score-ribbon">
+  <div class="score-pill"><div class="dot dot-correct"></div><span id="rb-correct">0 correct</span></div>
+  <div class="score-pill"><div class="dot dot-wrong"></div><span id="rb-wrong">0 incorrect</span></div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <div class="score-pill"><div class="dot dot-remaining"></div><span id="rb-remain">64 restantes</span></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls-wrap">
+  <div class="search-row">
+    <input class="search-input" type="text" placeholder="Rechercher une question, un tag…" oninput="doSearch(this.value)" />
+    <button class="btn-ghost" onclick="doShuffle()">⇄ Mélanger</button>
+    <button class="btn-ghost" onclick="resetAll()">↺ Tout réinitialiser</button>
+    <button class="btn-solid" onclick="revealAll()">Tout révéler</button>
+  </div>
+  <div class="filters">
+    <span class="filter-label">Thème :</span>
+    <button class="chip active-all" id="chip-all"     onclick="setFilter('all')">Tout <span id="cnt"></span></button>
+    <button class="chip"            id="chip-eco"     onclick="setFilter('eco')">🌿 Éco-conception</button>
+    <button class="chip"            id="chip-a11y"    onclick="setFilter('a11y')">♿ Accessibilité</button>
+    <button class="chip"            id="chip-process" onclick="setFilter('process')">⚙️ Process & Outils</button>
+    <button class="chip"            id="chip-ethique" onclick="setFilter('ethique')">⚖️ Éthique</button>
+  </div>
+</div>
+
+<div class="deck-meta">
+  <span id="deck-info"></span>
+  <span>Cliquer sur une réponse pour valider</span>
+</div>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const CARDS = [
+  {id:1,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que le poids d\'une page web et comment l\'optimiser ?',tags:['Web','Performance'],diff:1,src:'GreenIT.fr',pts:['Ensemble des ressources téléchargées : HTML, CSS, JS, images, polices, vidéos','Objectif : moins de 500 Ko par page (hors vidéo)','Compresser les images avec Squoosh, TinyPNG ou en format AVIF/WebP','Supprimer le CSS et JS inutilisés avec Purge CSS et Tree Shaking']},
+  {id:2,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que le GreenIT et quels sont ses objectifs ?',tags:['GreenIT','Numérique'],diff:1,src:'GreenIT.fr',pts:['Démarche visant à réduire l\'empreinte environnementale du numérique','Objectifs : sobriété numérique, longévité des équipements, efficience des services','Concerne toute la chaîne : fabrication, usage, fin de vie','Référentiel clé : RGESN (Référentiel Général d\'Écoconception de Services Numériques)']},
+  {id:3,type:'eco',cat:'Éco-conception',q:'Pourquoi le mode sombre peut-il être plus économe en énergie ?',tags:['UI','Énergie'],diff:2,src:'Google / OLED Studies',pts:['Sur les écrans OLED/AMOLED, les pixels noirs ne consomment pas d\'énergie','Économie jusqu\'à 40–60 % sur un écran OLED en pleine luminosité','Peu d\'impact sur les écrans LCD (rétroéclairage constant)','Ajouter une option de bascule : pas tout le monde ne préfère le mode sombre']},
+  {id:4,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que le lazy loading et pourquoi l\'utiliser ?',tags:['Web','Images'],diff:2,src:'Web.dev / Google',pts:['Technique qui reporte le chargement des ressources hors de la zone visible','Réduit le poids initial de la page et l\'énergie consommée au chargement','Implémentation HTML native : attribut loading="lazy" sur les images','Particulièrement impactant sur les pages longues avec beaucoup d\'images']},
+  {id:5,type:'eco',cat:'Éco-conception',q:'Quelle est la différence entre éco-conception et sobriété numérique ?',tags:['Concepts','Sobriété'],diff:2,src:'The Shift Project / INR',pts:['Éco-conception : optimiser un produit existant (moins de code, images légères…)','Sobriété : questionner la nécessité même du projet ou de la fonctionnalité','La sobriété est plus impactante mais plus difficile à mettre en œuvre','Les deux sont complémentaires dans une démarche environnementale complète']},
+  {id:6,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que la règle des 5R appliquée au design graphique ?',tags:['Démarche','Print'],diff:2,src:'ADEME',pts:['Refuser : ne pas créer de supports inutiles','Réduire : minimiser le format, le grammage, les couleurs','Réutiliser : penser les supports comme réemployables ou modulaires','Recycler + Rendre à la terre (compostable) : choisir des matériaux valorisables en fin de vie']},
+  {id:7,type:'eco',cat:'Éco-conception',q:'Quelles couleurs sont les plus économes en énergie sur un écran ?',tags:['Couleur','Énergie'],diff:1,src:'Google OLED Research',pts:['Sur écrans OLED : le noir (#000000) est le plus économe (pixels éteints)','Les teintes sombres et désaturées sont moins consommatrices que les vives','Le blanc pur sur OLED consomme autant que n\'importe quelle couleur lumineuse','Nuance : sur LCD, la couleur n\'affecte pas vraiment la consommation']},
+  {id:8,type:'eco',cat:'Éco-conception',q:'Comment choisir une typographie éco-responsable pour le web ?',tags:['Typo','Web'],diff:2,src:'Sustainable Web Design',pts:['Préférer les polices système (Georgia, Arial…) : déjà présentes, sans téléchargement','Si web font nécessaire : choisir une police à fichier léger (woff2 < 100 Ko)','Variable fonts : une seule fonte remplace toute une famille','Limiter le nombre de graisses et styles chargés (subset)']},
+  {id:9,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce qu\'un éco-organisme et quel est son rôle pour les imprimés ?',tags:['Print','Recyclage'],diff:2,src:'Citeo / ADEME',pts:['Structure qui gère la collecte et le recyclage des emballages et papiers','Citeo (ex-Eco-Emballages) gère les emballages ménagers en France','Les imprimés publicitaires sont soumis à contribution REP (Responsabilité Élargie)','Le code tri obligatoire doit figurer sur tout imprimé > 50g']},
+  {id:10,type:'eco',cat:'Éco-conception',q:'Quels sont les principaux labels certifiant un papier éco-responsable ?',tags:['Labels','Print'],diff:1,src:'PEFC / FSC',pts:['FSC (Forest Stewardship Council) : forêts gérées durablement et traçabilité complète','PEFC : certification forestière européenne équivalente','EU Ecolabel : certifie aussi les procédés de fabrication moins polluants','Recycled : papier issu à 100 % de fibres recyclées post-consommation']},
+  {id:11,type:'eco',cat:'Éco-conception',q:'Comment réduire l\'empreinte environnementale d\'une vidéo sur le web ?',tags:['Vidéo','Web'],diff:2,src:'The Shift Project',pts:['Éviter l\'autoplay : déclencher la vidéo uniquement sur action de l\'utilisateur','Compresser en H.265 ou AV1 : qualité équivalente, poids réduit de 50 %','Proposer une version audio-seule ou un article texte alternatif','Héberger sur un CDN vert ou utiliser un lecteur sans trackers (Plyr)']},
+  {id:12,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que l\'économie de la fonctionnalité appliquée au design ?',tags:['Modèle','Économie'],diff:3,src:'Walter Stahel / Ellen MacArthur',pts:['Vendre l\'usage plutôt que la propriété (ex: location de PLV réutilisable)','Allonge la durée de vie du support et réduit la production de déchets','Favorise les matériaux durables et réparables dans les choix de design','Exemples : location de supports d\'expo, impressions à la demande, licences']},
+  {id:13,type:'eco',cat:'Éco-conception',q:'Comment le choix du format de fichier affecte-t-il l\'empreinte d\'un projet ?',tags:['Fichiers','Optimisation'],diff:1,src:'GreenIT.fr',pts:['SVG pour logos/icônes : scalable, léger, sans pixelisation','PDF/X-4 pour l\'impression : standardisé et fiable','AVIF/WebP pour photos web : même qualité, 50 % moins lourd','ZIP réduit le poids des échanges lors des envois email']},
+  {id:14,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que l\'obsolescence programmée en design et comment la contrer ?',tags:['Durabilité','Éthique'],diff:3,src:'Ellen MacArthur Foundation',pts:['Design volontairement vieilli = rejet prématuré du support','Contre-approche : intemporalité, modularité, réparabilité','Créer des identités visuelles évolutives plutôt que tout-refaire','Préférer les chartes modulaires durables aux trends éphémères']},
+  {id:15,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce qu\'un hébergeur vert et comment le choisir ?',tags:['Hébergement','Web'],diff:2,src:'The Green Web Foundation',pts:['Hébergeur alimenté par des énergies renouvelables (solaire, éolien)','Vérifier sur greencheck.thegreenwebfoundation.org','Labels : ISO 14001, Energy Star, Green Web Check','Impact direct sur l\'empreinte carbone de chaque visite de site']},
+  {id:16,type:'eco',cat:'Éco-conception',q:'Comment le nombre de polices chargées impacte-t-il la durabilité numérique ?',tags:['Typo','Performance'],diff:2,src:'Sustainable Web Design',pts:['Chaque famille de police = 1 à plusieurs fichiers woff2 téléchargés','Objectif : maximum 2 familles de polices par projet web','Subset : ne charger que les caractères réellement utilisés','font-display: swap améliore la performance perçue sans bloquer le rendu']},
+  {id:17,type:'eco',cat:'Éco-conception',q:'Quels critères rendent un packaging graphique éco-responsable ?',tags:['Packaging','Print'],diff:2,src:'ADEME / Éco-emballages',pts:['Réduire le volume et le grammage au strict nécessaire','Supprimer les suremballages inutiles et les films plastiques','Utiliser des encres végétales et des papiers recyclés/recyclables','Concevoir pour le réemploi ou le compostage (économie circulaire)']},
+  {id:18,type:'eco',cat:'Éco-conception',q:'Quelle est la différence entre « recyclé » et « recyclable » pour un support papier ?',tags:['Matériaux','Print'],diff:2,src:'ADEME',pts:['Recyclé = fabriqué à partir de fibres récupérées (moins d\'eau et d\'énergie)','Recyclable = peut être recyclé en fin de vie (pas forcément issu du recyclé)','L\'idéal : papier recyclé ET recyclable (sans revêtements bloquants)','Éviter les papiers couchés brillants qui sont souvent non recyclables']},
+  {id:19,type:'eco',cat:'Éco-conception',q:'Pourquoi les animations CSS sont-elles préférables aux animations JS pour l\'éco-conception ?',tags:['Web','Animation'],diff:3,src:'Google Developers',pts:['Les animations CSS sont gérées par le GPU (moins de CPU sollicité)','Moins de JavaScript exécuté = moins d\'énergie consommée','Utiliser transform et opacity uniquement (évitent le reflow/repaint)','Désactiver les animations via prefers-reduced-motion (accessibilité aussi)']},
+  {id:20,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que l\'économie circulaire appliquée au design graphique ?',tags:['Circularité','Démarche'],diff:2,src:'Ellen MacArthur Foundation',pts:['Concevoir en pensant à la fin de vie dès le début : "du berceau au berceau"','Choisir des matériaux réutilisables, réparables et compostables','Éviter les mélanges de matériaux non séparables (film + carton collé)','Privilégier les supports réemployables (kakemonos lavables, signalétique modulaire)']},
+  {id:21,type:'eco',cat:'Éco-conception',q:'Comment mesurer l\'empreinte carbone d\'un site web ?',tags:['Mesure','Web'],diff:2,src:'Website Carbon / EcoIndex',pts:['Website Carbon Calculator : estimation CO₂ par visite','EcoIndex.fr : note de A à G selon le DOM, requêtes et poids','Ecograder : combine performance, UX et éco-conception','Google Lighthouse : performance et bonnes pratiques (indirectement éco)']},
+  {id:22,type:'eco',cat:'Éco-conception',q:'Pourquoi faut-il limiter les scripts tiers (tracking, widgets) sur un site ?',tags:['Web','Scripts'],diff:3,src:'GreenIT.fr',pts:['Chaque script tiers = requête externe supplémentaire = énergie','Les trackers peuvent représenter jusqu\'à 30 % du poids d\'une page','Utiliser des alternatives légères ou auto-hébergées quand possible','Auditer régulièrement avec Request Map Generator ou Blacklight']},
+  {id:23,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que le principe de sobriété fonctionnelle en design numérique ?',tags:['Sobriété','UX'],diff:2,src:'GreenIT.fr / INR',pts:['Ne concevoir que les fonctionnalités réellement utiles et utilisées','Supprimer les features dormantes qui chargent inutilement','Simplifier les parcours = moins d\'écrans = moins d\'énergie consommée','Évaluer l\'utilité avant la mise en œuvre, pas après']},
+  {id:24,type:'eco',cat:'Éco-conception',q:'Quelles sont les bonnes pratiques d\'impression numérique éco-responsable ?',tags:['Impression','Numérique'],diff:2,src:'ADEME',pts:['Impression à la demande = zéro stock = zéro invendu','Choisir l\'impression jet d\'encre plutôt que solvant pour les petits formats','Supports bannières en PVC : préférer les alternatives textile ou papier','Mutualiser les impressions pour réduire les distances de livraison']},
+  {id:25,type:'eco',cat:'Éco-conception',q:'Comment un designer graphique peut-il réduire son empreinte carbone au quotidien ?',tags:['Pratique','Quotidien'],diff:1,src:'ADEME / GreenIT',pts:['Vider régulièrement ses emails et dossiers cloud (stockage = énergie)','Préférer la vidéoconférence audio-only quand la vidéo n\'est pas nécessaire','Allonger la durée de vie de son matériel informatique','Choisir des outils SaaS certifiés éco-responsables ou open source légers']},
+  {id:26,type:'eco',cat:'Éco-conception',q:'Qu\'est-ce que le label Cradle to Cradle et comment s\'applique-t-il au graphisme ?',tags:['Labels','Circularité'],diff:3,src:'C2C / MBDC',pts:['Certification qui évalue la circularité totale d\'un matériau','5 critères : santé des matériaux, circularité, énergie, eau, équité sociale','Pour le print : papier, encres, procédés de finition tous recyclables/compostables','Incite à repenser le produit comme « nutriment » de futurs cycles']},
+  {id:27,type:'eco',cat:'Éco-conception',q:'Pourquoi éviter les finitions à chaud (dorure, pelliculage, vernis UV) sur les imprimés ?',tags:['Finitions','Print'],diff:2,src:'Imprim\'Vert / Recyconseil',pts:['Pelliculage plastique = papier non recyclable après traitement','Dorure à chaud (feuille aluminium) = difficile à trier en filière recyclage','Vernis UV = peut contenir des composés chimiques problématiques','Alternative : vernis aqueux (moins polluant) ou sans finition du tout']},
+  {id:28,type:'eco',cat:'Éco-conception',q:'Comment concevoir une signalétique durable et éco-responsable ?',tags:['Signalétique','Durabilité'],diff:2,src:'ADEME',pts:['Choisir des matériaux pérennes : aluminium recyclé, bois certifié FSC','Concevoir des systèmes modulaires : changer le contenu, pas le support','Éviter les plastiques à usage unique pour les totems et PLV','Prévoir le démontage et la valorisation en fin de vie dès la conception']},
+
+  {id:29,type:'a11y',cat:'Accessibilité',q:'Quels sont les 4 grands principes des WCAG ?',tags:['WCAG','Référentiel'],diff:1,src:'W3C WCAG 2.2',pts:['Perceptible : l\'info doit être perçue par tous les sens','Utilisable : navigation possible au clavier, sans souris','Compréhensible : contenu et interface lisibles et prévisibles','Robuste : compatible avec les technologies d\'assistance présentes et futures']},
+  {id:30,type:'a11y',cat:'Accessibilité',q:'Quel ratio de contraste minimum est requis pour un texte normal (WCAG AA) ?',tags:['Contraste','Couleur'],diff:2,src:'WCAG 2.2 - 1.4.3',pts:['AA : ratio minimum 4,5:1 pour le texte courant (< 18pt)','AA : ratio minimum 3:1 pour les grands textes (≥ 18pt ou 14pt gras)','AAA : ratio de 7:1 pour le texte courant (norme haute)','Outils : Colour Contrast Analyser, WebAIM Contrast Checker']},
+  {id:31,type:'a11y',cat:'Accessibilité',q:'Pourquoi ne pas véhiculer une information par la couleur seule ?',tags:['Couleur','Daltonisme'],diff:2,src:'WCAG 2.2 - 1.4.1',pts:['8 % des hommes et 0,5 % des femmes sont daltoniens','Doubler l\'info : icône + couleur, forme + couleur, texte + couleur','Tester avec Coblis, Sim Daltonism, plugins Figma','Principaux types : deutéranopie (vert), protanopie (rouge), tritanopie (bleu)']},
+  {id:32,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce qu\'un texte alternatif (alt) et comment le rédiger efficacement ?',tags:['Images','Alt text'],diff:1,src:'WCAG 2.2 - 1.1.1',pts:['Description textuelle d\'une image pour les lecteurs d\'écran','Décrire le contenu ET la fonction (ne pas commencer par "image de…")','Image décorative → alt="" (vide, pour être ignorée par les lecteurs)','Image informative → alt avec toute l\'information nécessaire à la compréhension']},
+  {id:33,type:'a11y',cat:'Accessibilité',q:'Comment structurer une hiérarchie typographique accessible ?',tags:['Typo','Structure'],diff:2,src:'WCAG / Opquast',pts:['Utiliser les balises sémantiques H1 > H2 > H3 dans l\'ordre logique','Ne jamais sauter un niveau de titre (H1 → H3 sans H2)','Taille minimale recommandée : 16px pour le corps de texte','Éviter les polices décoratives illisibles pour les contenus informatifs']},
+  {id:34,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que le focus clavier et pourquoi est-il indispensable ?',tags:['Clavier','Navigation'],diff:2,src:'WCAG 2.2 - 2.4.7',pts:['Indicateur visuel de l\'élément actif lors de la navigation au clavier','Essentiel pour les personnes ne pouvant pas utiliser une souris','Ne jamais supprimer outline: none sans proposer une alternative visible','Le focus doit être visible, contrasté et cohérent avec la charte graphique']},
+  {id:35,type:'a11y',cat:'Accessibilité',q:'Quelles sont les bonnes pratiques pour rendre une infographie accessible ?',tags:['Dataviz','Infographie'],diff:3,src:'WCAG / Dataviz a11y',pts:['Ajouter un titre et une description textuelle complète de l\'infographie','Fournir les données brutes en alternative (tableau HTML ou lien CSV)','Vérifier les contrastes et ne pas transmettre d\'info par couleur seule','Tester avec NVDA ou VoiceOver pour s\'assurer de la cohérence narrative']},
+  {id:36,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que le RGAA et à qui s\'applique-t-il en France ?',tags:['RGAA','Légal'],diff:2,src:'DINUM',pts:['Référentiel Général d\'Amélioration de l\'Accessibilité (transposition WCAG)','Obligatoire pour tous les sites et apps des services publics français','Niveau exigé : AA minimum (49 critères de base)','Déclaration d\'accessibilité obligatoire + plan d\'amélioration publié']},
+  {id:37,type:'a11y',cat:'Accessibilité',q:'Comment concevoir des formulaires accessibles ?',tags:['Formulaires','UX'],diff:2,src:'WCAG 2.2 - 1.3.1',pts:['Toujours associer un label visible à chaque champ (pas seulement placeholder)','Indiquer les champs obligatoires et les formats attendus clairement','Messages d\'erreur explicites et liés au champ concerné','Ordre de tabulation logique et cohérent avec la lecture visuelle']},
+  {id:38,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que l\'interlignage accessible et quelles valeurs recommander ?',tags:['Typo','Lisibilité'],diff:1,src:'WCAG 2.2 - 1.4.12',pts:['Interlignage (line-height) minimum : 1,5× la taille de police','Espacement entre paragraphes : 2× la taille de police minimum','Espacement des lettres : au moins 0,12× la taille de police','Améliore la lisibilité pour les dyslexiques et malvoyants']},
+  {id:39,type:'a11y',cat:'Accessibilité',q:'Comment rendre des vidéos accessibles dans une production graphique ?',tags:['Vidéo','Sous-titres'],diff:2,src:'WCAG 2.2 - 1.2.x',pts:['Sous-titres synchronisés pour sourds et malentendants (WCAG 1.2.2)','Audiodescription pour les contenus visuels importants (WCAG 1.2.5)','Transcription textuelle complète disponible en alternative','Éviter le clignotement > 3 fois/seconde (risque d\'épilepsie, WCAG 2.3.1)']},
+  {id:40,type:'a11y',cat:'Accessibilité',q:'Pourquoi éviter les PDF inaccessibles et comment les améliorer ?',tags:['PDF','Documents'],diff:3,src:'PDF/UA - ISO 14289',pts:['Un PDF scanné = image : illisible pour les lecteurs d\'écran','Taguer le PDF avec la structure sémantique (titres, listes, tableaux)','Définir l\'ordre de lecture logique dans les propriétés du document','Standard PDF/UA (Universal Accessibility) = norme ISO pour PDF accessibles']},
+  {id:41,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que le design inclusif et en quoi diffère-t-il de l\'accessibilité ?',tags:['Inclusivité','Démarche'],diff:2,src:'Microsoft Inclusive Design',pts:['Accessibilité = conformité technique pour personnes en situation de handicap','Design inclusif = démarche amont qui bénéficie à tous (curb-cut effect)','Inclure les utilisateurs marginalisés dès la phase de conception','Un design pensé pour les contraintes extrêmes améliore l\'expérience universelle']},
+  {id:42,type:'a11y',cat:'Accessibilité',q:'Quels outils utiliser pour auditer l\'accessibilité d\'une interface graphique ?',tags:['Outils','Audit'],diff:1,src:'WebAIM / Deque / DINUM',pts:['Colour Contrast Analyser (couleurs), WAVE (extension navigateur)','Axe DevTools (audit WCAG automatisé), Lighthouse (Chrome)','Lecteurs d\'écran : NVDA (Windows), VoiceOver (Mac/iOS), TalkBack (Android)','Test humain : impliquer des utilisateurs en situation de handicap']},
+  {id:43,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que l\'ordre de lecture et pourquoi est-il crucial en mise en page ?',tags:['Mise en page','Lecteurs d\'écran'],diff:2,src:'WCAG 2.2 - 1.3.2',pts:['Ordre dans lequel un lecteur d\'écran lit les éléments de la page','Doit correspondre à la logique visuelle de la mise en page','Un mauvais ordre = confusion totale pour les non-voyants','Tester en naviguant uniquement au clavier (Tab) et avec NVDA']},
+  {id:44,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que l\'aria-label et quand l\'utiliser ?',tags:['HTML','ARIA'],diff:3,src:'W3C ARIA 1.2',pts:['Attribut HTML qui donne un nom accessible à un élément interactif','Utilisé quand le texte visible n\'est pas suffisamment descriptif','Exemple : une icône de fermeture seule → aria-label="Fermer la fenêtre"','Ne pas en abuser : un contenu visible bien rédigé est toujours préférable']},
+  {id:45,type:'a11y',cat:'Accessibilité',q:'Comment rendre une animation ou une transition accessible ?',tags:['Animation','Mouvement'],diff:2,src:'WCAG 2.2 - 2.3.3',pts:['Implémenter prefers-reduced-motion pour respecter les préférences système','Les animations ne doivent pas durer plus de 5 secondes sans contrôle','Éviter les clignotements > 3 fois/seconde (risque épilepsie)','Proposer toujours un bouton pause pour les contenus animés automatiques']},
+  {id:46,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que la lisibilité cognitive et comment la favoriser en design ?',tags:['Cognitif','Lisibilité'],diff:2,src:'Opquast / Nielsen Norman',pts:['Structurer l\'information en blocs courts et clairement titrés','Utiliser un langage simple (niveau CE2 recommandé pour le grand public)','Éviter le jargon, les acronymes non définis et les métaphores opaques','Aérer visuellement : marges, interlignage, espacement entre sections']},
+  {id:47,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que l\'accessibilité dans le design print (imprimé) ?',tags:['Print','Accessibilité'],diff:2,src:'CFPSAA / APF France Handicap',pts:['Corps de texte minimum 12pt, idéalement 14pt pour le grand public','Contraste texte/fond minimum 4,5:1 même sur support papier','Éviter le texte sur fond texturé ou photographique sans masque opaque','Proposer une version Braille ou audio pour les documents officiels critiques']},
+  {id:48,type:'a11y',cat:'Accessibilité',q:'Comment concevoir des pictogrammes et icônes accessibles ?',tags:['Icônes','Pictogrammes'],diff:2,src:'WCAG 2.2 - 1.1.1',pts:['Toujours doubler l\'icône d\'un label textuel visible ou d\'un aria-label','Les icônes seules ne suffisent jamais comme seul vecteur d\'information','Tester la reconnaissance sans couleur ni contexte (silhouette uniquement)','Respecter un ratio de contraste 3:1 minimum pour les éléments graphiques non textuels']},
+  {id:49,type:'a11y',cat:'Accessibilité',q:'Qu\'est-ce que l\'accessibilité des couleurs pour les personnes âgées ?',tags:['Couleur','Vieillissement'],diff:2,src:'WHO / Nielsen Norman',pts:['Le cristallin jaunit avec l\'âge, altérant la perception du bleu/violet','Le contraste perçu diminue : viser AAA (7:1) pour les publics seniors','Éviter les petits textes en bleu sur fond foncé, très difficile à lire','La taille de police a un impact encore plus fort que le seul contraste']},
+  {id:50,type:'a11y',cat:'Accessibilité',q:'Comment tester l\'accessibilité d\'un site sans outils spécialisés ?',tags:['Test','Méthode'],diff:1,src:'Opquast / WebAIM',pts:['Naviguer uniquement au clavier : Tab, Shift+Tab, Entrée, Espace, flèches','Zoomer à 200 % : le contenu doit rester lisible et utilisable','Désactiver les CSS : la structure sémantique doit rester compréhensible','Activer le mode contraste élevé de l\'OS et vérifier la lisibilité']},
+
+  {id:51,type:'process',cat:'Process & Outils',q:'Comment intégrer l\'éco-conception dès le brief créatif ?',tags:['Brief','Méthode'],diff:2,src:'ADEME / 10 Principles',pts:['Ajouter un bloc "Contraintes environnementales" dans le brief standard','Définir les objectifs de durabilité en même temps que les objectifs visuels','Interroger le client sur le cycle de vie prévu du support dès le départ','Proposer des alternatives éco-responsables à chaque étape de validation']},
+  {id:52,type:'process',cat:'Process & Outils',q:'Quelles questions poser à un imprimeur pour s\'assurer de son engagement éco-responsable ?',tags:['Impression','Sourcing'],diff:2,src:'Imprim\'Vert / ADEME',pts:['Êtes-vous certifié Imprim\'Vert, ISO 14001 ou FSC ?','Comment gérez-vous vos déchets d\'encres et solvants ?','Proposez-vous des encres végétales ou à l\'eau en standard ?','Quelle est la provenance de vos stocks de papier ?']},
+  {id:53,type:'process',cat:'Process & Outils',q:'Comment faire une revue d\'accessibilité d\'une maquette graphique avant livraison ?',tags:['Revue','Figma'],diff:2,src:'WCAG / Figma a11y',pts:['Vérifier tous les ratios de contraste avec le plugin Figma "Contrast"','S\'assurer que chaque élément interactif a un label accessible','Valider la hiérarchie des titres (H1 > H2 > H3) dans l\'ordre logique','Tester la maquette en niveaux de gris pour détecter les problèmes de couleur']},
+  {id:54,type:'process',cat:'Process & Outils',q:'Qu\'est-ce qu\'un design system et en quoi favorise-t-il l\'éco-conception ?',tags:['Design System','Composants'],diff:3,src:'Brad Frost — Atomic Design',pts:['Bibliothèque de composants réutilisables = moins de code = moins de poids','Évite de recréer chaque fois les mêmes éléments (économie de ressources)','Cohérence visuelle sans duplication de fichiers lourds','Version unique de la vérité : moins d\'erreurs et de corrections à posteriori']},
+  {id:55,type:'process',cat:'Process & Outils',q:'Comment présenter l\'éco-conception et l\'accessibilité à un client qui ne les connaît pas ?',tags:['Client','Pédagogie'],diff:2,src:'ADEME / W3C',pts:['Cadrer en termes d\'image de marque et de responsabilité sociale','Citer les obligations légales (RGAA pour le public, loi AGEC pour l\'emballage)','Montrer les économies réalisées (moins d\'encre, moins de data)','Proposer un audit rapide pour objectiver les marges de progrès']},
+  {id:56,type:'process',cat:'Process & Outils',q:'Quels plugins Figma sont utiles pour l\'accessibilité et l\'éco-conception ?',tags:['Figma','Outils'],diff:1,src:'Figma Community',pts:['Contrast : vérifie les ratios de contraste WCAG en temps réel','A11y Annotation Kit : annote les maquettes pour le développement','Color Blind : simule les différents types de daltonisme','Figma Stats : analyse le poids des assets pour détecter les images trop lourdes']},
+
+  {id:57,type:'ethique',cat:'Éthique du design',q:'Qu\'est-ce que le greenwashing en design graphique et comment l\'éviter ?',tags:['Greenwashing','Éthique'],diff:2,src:'ARPP / ADEME',pts:['Utiliser des allégations environnementales sans preuve réelle = greenwashing','Règle : toute affirmation verte doit être vérifiable et sourcée','Éviter les visuels "verts" (feuilles, nature) sans engagement concret derrière','Guide : ARPP, norme ISO 14021 sur les déclarations environnementales']},
+  {id:58,type:'ethique',cat:'Éthique du design',q:'Qu\'est-ce qu\'un dark pattern et en quoi est-il contraire à l\'éthique du designer ?',tags:['Dark patterns','UX'],diff:2,src:'NNGroup / Deceptive Design',pts:['Interface conçue pour tromper l\'utilisateur (abonnements cachés, case pré-cochée…)','Contraire aux principes d\'accessibilité et de transparence','La CNIL et la DGCCRF sanctionnent les dark patterns en France','Un bon designer conçoit dans l\'intérêt de l\'utilisateur, pas contre lui']},
+  {id:59,type:'ethique',cat:'Éthique du design',q:'Pourquoi les droits d\'auteur et licences sont-ils cruciaux dans un projet éco-responsable ?',tags:['Droits','Licences'],diff:2,src:'CFC / INPI',pts:['Utiliser des ressources libres de droits évite les litiges et les refaits coûteux','Licences Creative Commons : préciser attribution, usage commercial, dérivés','Les polices ont leurs propres licences (OFL pour les libres de droits)','Documenter les sources permet la maintenance durable du projet']},
+  {id:60,type:'ethique',cat:'Éthique du design',q:'Qu\'est-ce que l\'obsolescence esthétique et quels sont ses impacts environnementaux ?',tags:['Tendances','Durabilité'],diff:3,src:'Papanek / Vance Packard',pts:['Rendre un objet "démodé" visuellement pour forcer son remplacement','Génère des volumes de déchets immenses dans les arts graphiques','Résistance : miser sur l\'intemporel, le modulaire, l\'évolutif','Le designer a une responsabilité face aux cycles de mode artificiellement courts']},
+  {id:61,type:'ethique',cat:'Éthique du design',q:'Comment le designer peut-il promouvoir la diversité et l\'inclusion dans ses créations ?',tags:['Diversité','Inclusion'],diff:2,src:'Microsoft Inclusive Design',pts:['Représenter diversité de genres, âges, origines et handicaps dans les visuels','Éviter les stéréotypes et les biais culturels dans les choix iconographiques','Tester les maquettes avec des personnes aux profils variés','L\'inclusion n\'est pas un bonus : c\'est un critère de qualité du design']},
+  {id:62,type:'ethique',cat:'Éthique du design',q:'Qu\'est-ce que la responsabilité sociale du designer graphique ?',tags:['RSE','Profession'],diff:2,src:'ICOGRADA / AGI',pts:['Le designer crée des représentations qui influencent comportements et perceptions','Refuser des commandes contraires à l\'éthique (propagande, désinformation)','S\'interroger sur l\'impact social et environnemental de chaque projet','Adhérer à des chartes éthiques professionnelles (APCI, ADC…)']},
+  {id:63,type:'ethique',cat:'Éthique du design',q:'Comment lutter contre la surconsommation visuelle dans un projet de communication ?',tags:['Sobriété','Communication'],diff:2,src:'Shift Project / Meadows',pts:['Interroger la nécessité réelle de chaque support avant de le créer','Consolider plusieurs publications en une seule plutôt que multiplier les formats','Allonger la durée de vie des campagnes plutôt que les renouveler chaque saison','Mesurer l\'impact réel du support vs son coût environnemental (ROI éco)']},
+  {id:64,type:'ethique',cat:'Éthique du design',q:'Qu\'est-ce que le design critique et en quoi interpelle-t-il les pratiques actuelles ?',tags:['Design critique','Réflexion'],diff:3,src:'Dunne & Raby / Speculative Design',pts:['Courant qui interroge les valeurs et conséquences du design via des projets provocateurs','Ne résout pas des problèmes : pose des questions sur la société','Invite à imaginer des alternatives aux modèles de consommation dominants','Outil pédagogique puissant pour former des designers conscients de leur impact']},
+];
+
+// ── QUIZ STATE ────────────────────────────────────────────────────────────────
+const LETTERS = ['A','B','C','D'];
+const state = {}; // id => { answered: bool, correct: bool, chosen: number }
+
+let currentCards = [...CARDS];
+let currentFilter = 'all';
+let currentSearch = '';
+
+// Generate wrong options for each card (distractor from other cards' pts)
+function getOptions(card) {
+  const correctIdx = Math.floor(Math.random() * card.pts.length);
+  const correctAnswer = card.pts[correctIdx];
+  const pool = CARDS.filter(c => c.id !== card.id && c.type === card.type)
+    .flatMap(c => c.pts)
+    .filter(p => p !== correctAnswer);
+  const shuffledPool = pool.sort(() => Math.random() - 0.5);
+  const wrongs = shuffledPool.slice(0, 3);
+  const opts = [...wrongs];
+  opts.splice(correctIdx % 4, 0, correctAnswer);
+  return { options: opts.slice(0,4), correctIndex: opts.indexOf(correctAnswer) };
+}
+
+// ── SCORE ────────────────────────────────────────────────────────────────────
+function updateScore() {
+  const answered = Object.values(state).filter(s => s.answered);
+  const correct = answered.filter(s => s.correct).length;
+  const wrong = answered.filter(s => !s.correct).length;
+  const total = CARDS.length;
+  const remain = total - answered.length;
+  document.getElementById('rb-correct').textContent = correct + ' correct';
+  document.getElementById('rb-wrong').textContent   = wrong + ' incorrect';
+  document.getElementById('rb-remain').textContent  = remain + ' restante' + (remain !== 1 ? 's' : '');
+  document.getElementById('header-score').textContent = answered.length + ' / ' + total + ' répondu';
+  const pct = answered.length / total * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+// ── BUILD CARD ────────────────────────────────────────────────────────────────
+function buildCard(d, animIdx) {
+  const { options, correctIndex } = getOptions(d);
+  const s = state[d.id] || {};
+
+  const wrap = document.createElement('div');
+  wrap.className = 'qcard';
+  wrap.dataset.id = d.id;
+  wrap.style.animationDelay = (animIdx * 0.025) + 's';
+
+  const diffDots = [1,2,3].map(i =>
+    `<span class="ddot${i <= d.diff ? ' on' : ''}"></span>`
+  ).join('');
+
+  const tags = d.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+  let optionsHTML = '';
+  options.forEach((opt, i) => {
+    let cls = 'option-btn';
+    let disabled = '';
+    if (s.answered) {
+      disabled = 'disabled';
+      if (i === correctIndex) cls += ' correct';
+      else if (i === s.chosen) cls += ' wrong';
+      else cls += ' revealed';
+    }
+    optionsHTML += `<button class="${cls}" ${disabled} onclick="handleAnswer(${d.id}, ${i}, ${correctIndex}, this)">
+      <span class="option-letter">${LETTERS[i]}</span>
+      <span>${opt}</span>
+    </button>`;
+  });
+
+  let revealHTML = '';
+  let revealShow = s.answered ? 'show' : '';
+  if (s.answered) {
+    const pts = d.pts.map((p, i) =>
+      `<div class="reveal-point"><span class="reveal-point-num">${i+1}.</span><span>${p}</span></div>`
+    ).join('');
+    revealHTML = `<div class="reveal-panel ${revealShow}" id="reveal-${d.id}">
+      <div class="reveal-header">Éléments de réponse complets</div>
+      <div class="reveal-points">${pts}</div>
+      <div class="source-ref">Réf. : ${d.src}</div>
+    </div>`;
+  } else {
+    revealHTML = `<div class="reveal-panel" id="reveal-${d.id}">
+      <div class="reveal-header">Éléments de réponse complets</div>
+      <div class="reveal-points">${d.pts.map((p,i) => `<div class="reveal-point"><span class="reveal-point-num">${i+1}.</span><span>${p}</span></div>`).join('')}</div>
+      <div class="source-ref">Réf. : ${d.src}</div>
+    </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="qcard-top">
+      <span class="cat-badge cat-${d.type}">${d.cat}</span>
+      <span class="card-id">#${String(d.id).padStart(2,'0')}</span>
+    </div>
+    <div class="qcard-body">
+      <p class="question-text">${d.q}</p>
+      <div class="options-list">${optionsHTML}</div>
+    </div>
+    ${revealHTML}
+    <div class="qcard-foot">
+      <div class="tags-row">${tags}</div>
+      <div class="diff-dots">${diffDots}</div>
+    </div>
+  `;
+  return wrap;
+}
+
+// ── ANSWER HANDLER ────────────────────────────────────────────────────────────
+function handleAnswer(id, chosenIdx, correctIdx, btn) {
+  if (state[id] && state[id].answered) return;
+
+  const isCorrect = chosenIdx === correctIdx;
+  state[id] = { answered: true, correct: isCorrect, chosen: chosenIdx };
+
+  const card = btn.closest('.qcard');
+  const buttons = card.querySelectorAll('.option-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.classList.add('correct');
+    else if (i === chosenIdx) b.classList.add('wrong');
+    else b.classList.add('revealed');
+  });
+
+  const reveal = card.querySelector('.reveal-panel');
+  if (reveal) reveal.classList.add('show');
+
+  updateScore();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  const list = currentCards.filter(d => {
+    const fOk = currentFilter === 'all' || d.type === currentFilter;
+    const q = currentSearch.toLowerCase();
+    const sOk = !q ||
+      d.q.toLowerCase().includes(q) ||
+      d.cat.toLowerCase().includes(q) ||
+      d.tags.some(t => t.toLowerCase().includes(q)) ||
+      d.pts.some(p => p.toLowerCase().includes(q));
+    return fOk && sOk;
+  });
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><p>Aucune question trouvée</p><small>Essayez un autre terme ou filtre</small></div>`;
+  } else {
+    list.forEach((d, i) => grid.appendChild(buildCard(d, i)));
+  }
+
+  document.getElementById('deck-info').textContent =
+    list.length + ' question' + (list.length > 1 ? 's' : '') + ' affichée' + (list.length > 1 ? 's' : '');
+  document.getElementById('cnt').textContent = '(' + CARDS.length + ')';
+  document.getElementById('total-count').textContent = CARDS.length;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','eco','a11y','process','ethique'].forEach(k => {
+    const el = document.getElementById('chip-' + k);
+    if (el) el.className = 'chip' + (k === f ? ' active-' + k : '');
+  });
+  render();
+}
+
+function doShuffle() {
+  currentCards = [...currentCards].sort(() => Math.random() - 0.5);
+  render();
+}
+
+function doSearch(val) {
+  currentSearch = val;
+  render();
+}
+
+function resetAll() {
+  Object.keys(state).forEach(k => delete state[k]);
+  currentCards = [...CARDS];
+  render();
+  updateScore();
+}
+
+function revealAll() {
+  document.querySelectorAll('.reveal-panel').forEach(p => p.classList.add('show'));
+}
+
+render();
+updateScore();
+</script>
+</body>
+</html>
